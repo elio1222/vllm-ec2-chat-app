@@ -1,0 +1,38 @@
+services:
+  api:
+    build:
+      context: ./app
+    container_name: fastapi_api
+    env_file:
+      - ./app/.env
+    volumes:
+      - ./app:/app  # <-- FIX: Maps your local Python code into the container
+      - appdata:/data
+    expose:
+      - "8000"
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+    container_name: frontend_app
+    volumes:
+      - ./frontend:/usr/share/nginx/html # <-- FIX: Maps your HTML/JS files to Nginx
+    expose:
+      - "80"
+    restart: unless-stopped
+
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: fastapi_nginx
+    depends_on:
+      - api
+      - frontend
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    restart: unless-stopped
+
+volumes:
+  appdata:
